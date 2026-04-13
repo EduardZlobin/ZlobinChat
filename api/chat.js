@@ -94,9 +94,9 @@ export default async function handler(req, res) {
 
         // 3. Настраиваем модель Gemini
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: SYSTEM_INSTRUCTION
-        });
+    model: "gemini-1.5-flash-latest", // Добавь -latest
+    systemInstruction: SYSTEM_INSTRUCTION
+});
 
         // 4. Запускаем чат и получаем ответ
         const chat = model.startChat();
