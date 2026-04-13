@@ -19,15 +19,6 @@ userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
 let inactivityTimer;
 
-// Функция для сброса и запуска таймера
-function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-        // Если пользователь молчит 30 секунд, отправляем "..."
-        sendSilentMessage("...");
-    }, 30000); // 30000 мс = 30 секунд
-}
-
 // Функция для отправки сообщения без отображения "..." в чате
 async function sendSilentMessage(text) {
     try {
