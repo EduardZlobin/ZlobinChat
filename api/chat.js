@@ -84,7 +84,7 @@ export default async function handler(req, res) {
         const { message, history } = req.body;
 
         const model = genAI.getGenerativeModel({ 
-    model: "gemini-3-flash-latest",
+    model: "gemini-3-flash-preview",
     systemInstruction: SYSTEM_INSTRUCTION,
     generationConfig: {
         temperature: 0.7, // 0.7 — золотая середина между логикой и творчеством
@@ -102,6 +102,6 @@ export default async function handler(req, res) {
         return res.status(200).json({ reply: response.text() });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ reply: "Ой , в голове помутилось ! Видно , таблетку забыл выпить !" });
+        return res.status(500).json({ reply: "Ой , в голове помутилось ! Видно , таблетку забыл выпить, сейчас отойду на минутку, подождите !" });
     }
 }
