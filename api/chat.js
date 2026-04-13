@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     try {
         // Используем эндпоинт для текстового диалога
-        const response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}/response`, {
+        const response = await fetch(`https://api.elevenlabs.io/v1/convai/conversation/get_response`, {
             method: "POST",
             headers: {
                 "xi-api-key": apiKey,
