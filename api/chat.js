@@ -84,7 +84,7 @@ export default async function handler(req, res) {
         const { message, history } = req.body;
 
         const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash-latest",
+    model: "gemini-3-flash-latest",
     systemInstruction: SYSTEM_INSTRUCTION,
     generationConfig: {
         temperature: 0.7, // 0.7 — золотая середина между логикой и творчеством
