@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"; // Вместо require
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -79,27 +79,39 @@ Treat "..." as a signal to speak first !
 `;
 
 export default async function handler(req, res) {
-    // Добавь это, чтобы сервер точно понял, что пришел текст
-    const { message } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    
-    // И замени sendMessage на:
-    const result = await chat.sendMessage(message);
-    
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
-    
+    // 1. Проверяем, что это POST запрос
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
     try {
+        // 2. Получаем сообщение от пользователя
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        // 3. Настраиваем модель Gemini
         const model = genAI.getGenerativeModel({ 
             model: "gemini-1.5-flash",
             systemInstruction: SYSTEM_INSTRUCTION
         });
 
+        // 4. Запускаем чат и получаем ответ
         const chat = model.startChat();
-        const result = await chat.sendMessage(req.body.message);
+        const result = await chat.sendMessage(message);
         const response = await result.response;
+        const text = response.text();
         
-        return res.status(200).json({ reply: response.text() });
+        // 5. Отправляем ответ Эдика обратно
+        return res.status(200).json({ reply: text });
+
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ reply: "Ой , что-то связь прервалась ! Наверное , пенсия опять не проходит !" });
+        console.error("Ошибка в работе Эдика:", error);
+        // Если ошибка в API ключе или лимитах Google
+        return res.status(500).json({ 
+            reply: "Ой , что-то связь прервалась ! Наверное , пенсия опять не проходит !" 
+        });
     }
 }
