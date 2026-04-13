@@ -67,10 +67,6 @@ async function sendMessage() {
     }
 }
 
-
-// Запускаем таймер при первой загрузке страницы
-resetInactivityTimer();
-
 function speak(text) {
     // Проверяем, поддерживает ли браузер синтез речи
     if (!window.speechSynthesis) return;
