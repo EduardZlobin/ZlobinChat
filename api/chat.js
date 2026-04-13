@@ -79,6 +79,12 @@ Treat "..." as a signal to speak first !
 `;
 
 export default async function handler(req, res) {
+    // Добавь это, чтобы сервер точно понял, что пришел текст
+    const { message } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    
+    // И замени sendMessage на:
+    const result = await chat.sendMessage(message);
+    
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     
     try {
