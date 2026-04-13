@@ -1,3 +1,22 @@
+const messagesContainer = document.getElementById('messages');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+// Функция для добавления сообщений в интерфейс
+function appendMessage(text, className) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `msg ${className}`;
+    msgDiv.innerText = text;
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Автоскролл вниз
+}
+
+// Привязываем нажатие кнопки
+sendBtn.onclick = sendMessage;
+
+// Привязываем Enter
+userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
 let inactivityTimer;
 
 // Функция для сброса и запуска таймера
