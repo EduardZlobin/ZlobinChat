@@ -84,9 +84,12 @@ export default async function handler(req, res) {
         const { message, history } = req.body;
 
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-3-flash-preview", 
-            systemInstruction: SYSTEM_INSTRUCTION 
-        });
+    model: "gemini-3-flash-preview",
+    systemInstruction: SYSTEM_INSTRUCTION,
+    generationConfig: {
+        temperature: 0.7, // 0.7 — золотая середина между логикой и творчеством
+    }
+});
 
         // Запускаем чат С ИСТОРИЕЙ (если её нет, будет пустой массив)
         const chat = model.startChat({
