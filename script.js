@@ -88,3 +88,52 @@ function speak(text) {
 
     window.speechSynthesis.speak(utterance);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // Проверка на наличие элементов в HTML
+    if (!chatBox || !userInput || !sendBtn) {
+        console.error("Ошибка: Один из элементов (chat-box, user-input или send-btn) не найден в HTML.");
+        return;
+    }
+
+    function appendMessage(text, className) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${className}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user-msg');
+        userInput.value = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+            if (data.reply) {
+                appendMessage(data.reply, 'bot-msg');
+            }
+        } catch (e) {
+            console.error("Ошибка при запросе к API:", e);
+            appendMessage("Ошибка связи с сервером.", "bot-msg");
+        }
+    }
+
+    sendBtn.onclick = sendMessage;
+    userInput.onkeypress = (e) => {
+        if (e.key === 'Enter') sendMessage();
+    };
+});
