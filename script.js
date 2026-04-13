@@ -38,35 +38,66 @@ async function sendSilentMessage(text) {
         });
         const data = await response.json();
         appendMessage(data.reply, 'bot-msg');
+        speak(data.reply);
         resetInactivityTimer(); // Запускаем таймер снова после ответа Эдика
     } catch (e) {
         console.error("Эдик не смог достучаться...");
     }
 }
 
-// Обновим твою основную функцию отправки, чтобы она тоже сбрасывала таймер
+let chatHistory = []; // Тут будет храниться наша переписка
+
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
 
     appendMessage(text, 'user-msg');
     userInput.value = '';
-    clearTimeout(inactivityTimer); // Останавливаем таймер, пока Эдик отвечает
+    
+    // Добавляем сообщение пользователя в историю
+    chatHistory.push({ role: "user", parts: [{ text: text }] });
 
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
+            // Отправляем и сообщение, и ВСЮ историю
+            body: JSON.stringify({ message: text, history: chatHistory })
         });
         
         const data = await response.json();
         appendMessage(data.reply, 'bot-msg');
-        resetInactivityTimer(); // Снова запускаем таймер после того, как ответ получен
+
+        // Добавляем ответ Эдика в историю, чтобы он помнил, что сказал
+        chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
+        
     } catch (e) {
-        appendMessage('Ой , что-то связь прервалась ! Наверное , пенсия опять не проходит !', 'bot-msg');
+        appendMessage('Ой , что-то связь прервалась !', 'bot-msg');
     }
 }
 
+
 // Запускаем таймер при первой загрузке страницы
 resetInactivityTimer();
+
+function speak(text) {
+    // Проверяем, поддерживает ли браузер синтез речи
+    if (!window.speechSynthesis) return;
+
+    // Останавливаем текущую озвучку, если она идет
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Настраиваем голос
+    utterance.lang = 'ru-RU'; // Русский язык
+    utterance.pitch = 0.9;    // Чуть ниже голос (для солидности)
+    utterance.rate = 1.0;     // Скорость обычная
+
+    // Пытаемся найти мужской голос, если он есть в системе
+    const voices = window.speechSynthesis.getVoices();
+    const maleVoice = voices.find(voice => voice.name.includes('Microsoft Pavel') || voice.name.includes('Google русский'));
+    if (maleVoice) utterance.voice = maleVoice;
+
+    window.speechSynthesis.speak(utterance);
+}
