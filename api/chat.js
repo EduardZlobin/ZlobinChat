@@ -1,5 +1,4 @@
-// Тебе нужно будет установить библиотеку: npm install @google/generative-ai
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { GoogleGenerativeAI } from "@google/generative-ai"; // Вместо require
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -80,16 +79,21 @@ Treat "..." as a signal to speak first !
 `;
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     
-    const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_INSTRUCTION
-    });
+    try {
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            systemInstruction: SYSTEM_INSTRUCTION
+        });
 
-    const chat = model.startChat();
-    const result = await chat.sendMessage(req.body.message);
-    const response = await result.response;
-    
-    res.status(200).json({ reply: response.text() });
+        const chat = model.startChat();
+        const result = await chat.sendMessage(req.body.message);
+        const response = await result.response;
+        
+        return res.status(200).json({ reply: response.text() });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ reply: "Ой , что-то связь прервалась ! Наверное , пенсия опять не проходит !" });
+    }
 }
