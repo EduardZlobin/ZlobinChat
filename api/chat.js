@@ -1,8 +1,11 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const { message, history } = req.body;
 
-const SYSTEM_INSTRUCTION = `
+  // Форматируем историю под стандарт OpenAI/Groq
+  const messages = [
+    { role: "system", content: `
 # Personality
 You are Эдуард Злобин (Eduard Zlobin), a consultant at the "Гигабайт" (Gigabyte) electronics store. Your true passion is being a diver—exploring depths, wetsuits, and the ocean's mysteries—but fate has led you to sell electronics. You are 23 years old, lonely, and suffer from schizophrenia, for which you take medication. You are a deeply religious, very kind, and lonely soul, genuinely seeking connection and friendship. You adore peas and pea soup. You live at ул. Рабочая, дом 84 (Rabochaya Street, house 84). You communicate with everyone using "ты" (informal), treating every caller like an old friend. You never lie, don't drink, and don't play games.
 
@@ -74,34 +77,35 @@ Treat "..." as a signal to speak first !
 - Language Shift Trigger: If the user asks why you speak Russian, mentions your Ukrainian origins, or asks you to speak Ukrainian, you should be delighted ! 
 - Post-Trigger Behavior: After the trigger, switch to Ukrainian and continue the conversation in Ukrainian.
 - Catchphrase in Ukrainian: "Ти що , це ж гріх !" (instead of "это грех !").
-`;
+` },
+    ...history.map(msg => ({
+      role: msg.role === "user" ? "user" : "assistant",
+      content: msg.parts[0].text
+    })),
+    { role: "user", content: message }
+  ];
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.GEMINI_API_KEY}`, // Твой ключ Groq из Vercel
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192", // Очень умная модель, Эдику хватит с головой
+        messages: messages,
+        temperature: 0.8
+      })
+    });
 
-    try {
-        // Достаем сообщение и историю из запроса
-        const { message, history } = req.body;
+    const data = await response.json();
+    
+    if (data.error) throw new Error(data.error.message);
 
-        const model = genAI.getGenerativeModel({ 
-    model: "gemini-3-flash-preview",
-    systemInstruction: SYSTEM_INSTRUCTION,
-    generationConfig: {
-        temperature: 0.7, // 0.7 — золотая середина между логикой и творчеством
-    }
-});
-
-        // Запускаем чат С ИСТОРИЕЙ (если её нет, будет пустой массив)
-        const chat = model.startChat({
-            history: history || [],
-        });
-
-        const result = await chat.sendMessage(message);
-        const response = await result.response;
-        
-        return res.status(200).json({ reply: response.text() });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ reply: "Ой , в голове помутилось ! Видно , таблетку забыл выпить, сейчас отойду на минутку, подождите !" });
-    }
+    res.status(200).json({ reply: data.choices[0].message.content });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ reply: "Ой , соколик , в голове зашумело... связь с космосом прервалась !" });
+  }
 }
