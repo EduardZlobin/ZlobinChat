@@ -93,7 +93,7 @@ Treat "..." as a signal to speak first !
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192", // Очень умная модель, Эдику хватит с головой
+        model: "llama-3.3-70b-versatile", // Очень умная модель, Эдику хватит с головой
         messages: messages,
         temperature: 0.8
       })
@@ -106,6 +106,6 @@ Treat "..." as a signal to speak first !
     res.status(200).json({ reply: data.choices[0].message.content });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ reply: "Ой , соколик , в голове зашумело... связь с космосом прервалась !" });
+    res.status(500).json({ reply: "Ой, в голове зашумело... таблетку выпью !" });
   }
 }
